@@ -30,6 +30,7 @@ export interface GameRound {
   payoutProcessed?: boolean;
   adminOverridden?: boolean;
   overriddenBy?: string;
+  recentWinningColors?: WheelColor[];
   createdAt: number;
 }
 

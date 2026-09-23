@@ -71,7 +71,8 @@ export function pickRandomColor(): WheelColor {
 export async function createNewRound(
   previousRoundNumber = 0,
   previousTargetAngle = 0,
-  forcedWinningColor?: WheelColor
+  forcedWinningColor?: WheelColor,
+  existingRecentColors?: WheelColor[]
 ): Promise<GameRound> {
   const now = Date.now();
   const spinDuration =
@@ -106,6 +107,23 @@ export async function createNewRound(
     }
   }
 
+  // Preserve or fetch recent winning colors
+  let recentColors = existingRecentColors;
+  if (!recentColors || recentColors.length === 0) {
+    try {
+      const currentRef = doc(db, 'rounds', CURRENT_ROUND_DOC);
+      const snap = await getDoc(currentRef);
+      if (snap.exists()) {
+        const prev = snap.data() as GameRound;
+        if (prev.recentWinningColors && prev.recentWinningColors.length > 0) {
+          recentColors = prev.recentWinningColors;
+        }
+      }
+    } catch {
+      // non-fatal
+    }
+  }
+
   const bettingEndTime = now + bettingDuration;
   const spinEndTime = bettingEndTime + spinDuration;
   const targetAngle = calculateTargetAngle(winningColor, previousTargetAngle || 0);
@@ -127,6 +145,7 @@ export async function createNewRound(
     totalCoinsBet: 0,
     payoutProcessed: false,
     adminOverridden,
+    recentWinningColors: recentColors || [],
     createdAt: now,
   };
 
@@ -211,9 +230,21 @@ export async function syncRoundProgress(round: GameRound): Promise<void> {
 
   // 2. Spinning -> Completed
   if (round.status === 'SPINNING' && now >= round.spinEndTime) {
-    await updateDoc(currentRef, { status: 'COMPLETED' });
+    const prior = round.recentWinningColors || [];
+    const updatedRecent =
+      prior[0] === round.winningColor
+        ? prior
+        : [round.winningColor, ...prior.filter((_, i) => i < 9)];
+
+    await updateDoc(currentRef, {
+      status: 'COMPLETED',
+      recentWinningColors: updatedRecent,
+    });
     const archiveRef = doc(db, 'rounds', round.id);
-    await updateDoc(archiveRef, { status: 'COMPLETED' }).catch(() => {});
+    await updateDoc(archiveRef, {
+      status: 'COMPLETED',
+      recentWinningColors: updatedRecent,
+    }).catch(() => {});
 
     // Trigger payout processing
     if (!round.payoutProcessed) {
@@ -224,8 +255,13 @@ export async function syncRoundProgress(round: GameRound): Promise<void> {
 
   // 3. Completed -> Next round after RESULT_DISPLAY_MS
   if (round.status === 'COMPLETED' && now >= round.spinEndTime + RESULT_DISPLAY_MS) {
+    const prior = round.recentWinningColors || [];
+    const updatedRecent =
+      prior[0] === round.winningColor
+        ? prior
+        : [round.winningColor, ...prior.filter((_, i) => i < 9)];
     // Start next round
-    await createNewRound(round.roundNumber, round.targetAngle);
+    await createNewRound(round.roundNumber, round.targetAngle, undefined, updatedRecent);
   }
 }
 
@@ -596,5 +632,84 @@ export function subscribeCurrentRoundBets(
       callback(list);
     },
     (err) => console.warn('Current round bets snapshot warning:', err)
+  );
+}
+
+/**
+ * Real-time subscription to the last 5 winning colors.
+ * Synchronized globally across all clients and persisted in Firestore & localStorage.
+ */
+export function subscribeRecentWinningColors(
+  callback: (colors: WheelColor[]) => void
+): () => void {
+  const DEFAULT_COLORS: WheelColor[] = [
+    'DARK RED',
+    'DARK BLUE',
+    'DARK GREEN',
+    'DARK PINK',
+    'DARK PURPLE',
+  ];
+
+  // Immediate cached render to eliminate layout shift or loading delay
+  try {
+    const cached = localStorage.getItem('realspin_last_5_colors');
+    if (cached) {
+      const parsed = JSON.parse(cached) as WheelColor[];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        callback(parsed.slice(0, 5));
+      } else {
+        callback(DEFAULT_COLORS);
+      }
+    } else {
+      callback(DEFAULT_COLORS);
+    }
+  } catch {
+    callback(DEFAULT_COLORS);
+  }
+
+  // Real-time listener on active round document
+  const currentRef = doc(db, 'rounds', CURRENT_ROUND_DOC);
+  return onSnapshot(
+    currentRef,
+    (snap) => {
+      if (snap.exists()) {
+        const data = snap.data() as GameRound;
+        const list = [...(data.recentWinningColors || [])];
+        if (data.status === 'COMPLETED' && data.winningColor) {
+          if (list[0] !== data.winningColor) {
+            list.unshift(data.winningColor);
+          }
+        }
+        if (list.length > 0) {
+          const finalFive = list.slice(0, 5);
+          while (finalFive.length < 5) {
+            finalFive.push(DEFAULT_COLORS[finalFive.length % DEFAULT_COLORS.length]);
+          }
+          try {
+            localStorage.setItem('realspin_last_5_colors', JSON.stringify(finalFive));
+          } catch {}
+          callback(finalFive);
+          return;
+        }
+      }
+
+      // If document doesn't have recent colors yet, query recent completed rounds
+      getRecentRounds(5)
+        .then((rounds) => {
+          if (rounds.length > 0) {
+            const colors = rounds.map((r) => r.winningColor);
+            while (colors.length < 5) {
+              colors.push(DEFAULT_COLORS[colors.length % DEFAULT_COLORS.length]);
+            }
+            const five = colors.slice(0, 5);
+            try {
+              localStorage.setItem('realspin_last_5_colors', JSON.stringify(five));
+            } catch {}
+            callback(five);
+          }
+        })
+        .catch(() => {});
+    },
+    (err) => console.warn('Recent winning colors snapshot warning:', err)
   );
 }

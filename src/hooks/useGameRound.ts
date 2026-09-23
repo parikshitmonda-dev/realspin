@@ -5,6 +5,7 @@ import {
   syncRoundProgress,
   calculateTargetAngle,
   createNewRound,
+  subscribeRecentWinningColors,
 } from '../services/roundService';
 import { RESULT_DISPLAY_MS } from '../utils/constants';
 import confetti from 'canvas-confetti';
@@ -15,12 +16,21 @@ export function useGameRound() {
   const [wheelRotation, setWheelRotation] = useState<number>(0);
   const [isSpinningVisual, setIsSpinningVisual] = useState<boolean>(false);
   const [celebrationColor, setCelebrationColor] = useState<WheelColor | null>(null);
+  const [recentColors, setRecentColors] = useState<WheelColor[]>([]);
   const previousStatusRef = useRef<string>('');
 
   // 1. Subscribe to Firestore current round
   useEffect(() => {
     const unsub = subscribeCurrentRound((curRound) => {
       setRound(curRound);
+    });
+    return () => unsub();
+  }, []);
+
+  // 1b. Subscribe to recent 5 winning colors
+  useEffect(() => {
+    const unsub = subscribeRecentWinningColors((colors) => {
+      setRecentColors(colors);
     });
     return () => unsub();
   }, []);
@@ -103,5 +113,6 @@ export function useGameRound() {
     wheelRotation,
     isSpinningVisual,
     celebrationColor,
+    recentColors,
   };
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useGameRound } from '../hooks/useGameRound';
 import { TopTabs } from '../components/TopTabs';
+import { RecentResultsBullets } from '../game/RecentResultsBullets';
 import { SpinWheel } from '../game/SpinWheel';
 import { WheelStatus } from '../game/WheelStatus';
 import { BettingButtons } from '../game/BettingButtons';
@@ -19,7 +20,14 @@ import { subscribeUserBetsForRound } from '../services/walletService';
 
 export const HomePage: React.FC = () => {
   const { user, isAdmin, logout } = useAuth();
-  const { round, timeLeftMs, wheelRotation, isSpinningVisual, celebrationColor } = useGameRound();
+  const {
+    round,
+    timeLeftMs,
+    wheelRotation,
+    isSpinningVisual,
+    celebrationColor,
+    recentColors,
+  } = useGameRound();
 
   // Active bets by this user on the current round
   const [userBets, setUserBets] = useState<Bet[]>([]);
@@ -103,6 +111,12 @@ export const HomePage: React.FC = () => {
 
       {/* 2 & 3. MAIN GAME ARENA (Centered on mobile screen) */}
       <main className="flex-1 flex flex-col items-center justify-center w-full max-w-lg mx-auto px-2 py-1 select-none">
+        {/* GAP BETWEEN USER LOGIN TAB & WHEEL PIN: LAST 5 RESULTS BULLETS */}
+        <RecentResultsBullets
+          colors={recentColors}
+          latestWinningColor={round?.status === 'COMPLETED' ? round.winningColor : null}
+        />
+
         {/* Spin Wheel */}
         <SpinWheel
           round={round}
