@@ -31,7 +31,7 @@ export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({
       {/* Desktop Tooltip */}
       {showTooltip && (
         <div className="hidden sm:block mb-2 px-3 py-1.5 bg-slate-900/95 border border-emerald-500/40 text-emerald-300 text-xs font-medium rounded-lg shadow-xl backdrop-blur-sm animate-in fade-in duration-150">
-          Chat with Virtual Spin Support
+          Chat with Real Spin Support
         </div>
       )}
 

@@ -87,7 +87,7 @@ export const MAX_COIN_REQUEST_AMOUNT = 100000;
 
 // WhatsApp Support config
 export const DEFAULT_WHATSAPP_NUMBER = '15551234567';
-export const WHATSAPP_DEFAULT_MESSAGE = 'Hello Support, I need help with my Virtual Spin account.';
+export const WHATSAPP_DEFAULT_MESSAGE = 'Hello Support, I need help with my Real Spin account.';
 
 export function getWhatsAppSupportNumber(): string {
   const envNumber =

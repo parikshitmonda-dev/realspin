@@ -162,7 +162,7 @@ export const HomePage: React.FC = () => {
           onClose={() => setActiveModal(null)}
           onSuccess={() => {
             setActiveModal(null);
-            showToast('Welcome to Virtual Coin Spin!');
+            showToast('Welcome to Real Spin!');
           }}
         />
       )}

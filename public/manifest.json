@@ -1,7 +1,7 @@
 {
-  "short_name": "VirtualSpin",
-  "name": "Virtual Coin Spin Wheel",
-  "description": "Mobile-first virtual coin spin wheel game with synchronized global rounds.",
+  "short_name": "Real Spin",
+  "name": "Real Spin",
+  "description": "Real Spin - Mobile-first virtual coin spin wheel game with synchronized global rounds.",
   "icons": [
     {
       "src": "/icon.svg",

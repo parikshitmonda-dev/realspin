@@ -428,9 +428,9 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
       const spinStartTime = spinEndTime - spinDuration;
       const startAngle = startAngleRef.current;
 
-      // Ensure target is strictly forward from startAngle by 12-15 revolutions (natural pacing for 30-45s spin)
+      // Ensure target is strictly forward from startAngle by 18-22 revolutions (0.5x faster wheel speed)
       let finalTarget = round.targetAngle;
-      while (finalTarget <= startAngle + 12 * 360) {
+      while (finalTarget <= startAngle + 18 * 360) {
         finalTarget += 360;
       }
       targetAngleRef.current = finalTarget;
