@@ -1,0 +1,6 @@
+{
+  "name": "Virtual Coin Spin Wheel",
+  "description": "Mobile-first virtual coin spin wheel game with synchronized global rounds, zero-value virtual coin economy, instant admin approvals, and real-time ledger records.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

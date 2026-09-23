@@ -1,0 +1,159 @@
+{
+  "entities": {
+    "user": {
+      "title": "User",
+      "description": "User profile with virtual coin balance and role",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "fullName": { "type": "string" },
+        "mobileNumber": { "type": "string" },
+        "email": { "type": "string" },
+        "balance": { "type": "number" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["uid", "fullName", "balance", "role", "isActive", "createdAt"]
+    },
+    "round": {
+      "title": "GameRound",
+      "description": "Global synchronized spin wheel round",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "roundNumber": { "type": "number" },
+        "status": { "type": "string", "enum": ["BETTING_OPEN", "SPINNING", "COMPLETED"] },
+        "startTime": { "type": "number" },
+        "bettingEndTime": { "type": "number" },
+        "spinDuration": { "type": "number" },
+        "spinEndTime": { "type": "number" },
+        "winningColor": { "type": "string" },
+        "targetAngle": { "type": "number" },
+        "totalBetsCount": { "type": "number" },
+        "totalCoinsBet": { "type": "number" },
+        "payoutProcessed": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "roundNumber", "status", "winningColor", "targetAngle", "createdAt"]
+    },
+    "coinRequest": {
+      "title": "CoinRequest",
+      "description": "Player request for virtual coins requiring admin review",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userMobile": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "requestedAmount": { "type": "number" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"] },
+        "adminReason": { "type": "string" },
+        "reviewedBy": { "type": "string" },
+        "reviewedAt": { "type": "number" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "userId", "requestedAmount", "status", "createdAt"]
+    },
+    "bet": {
+      "title": "Bet",
+      "description": "Virtual coin bet placed on a specific wheel slice for a round",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "roundId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userMobile": { "type": "string" },
+        "selectedColor": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["PLACED", "WON", "LOST"] },
+        "payout": { "type": "number" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "roundId", "userId", "selectedColor", "amount", "status", "createdAt"]
+    },
+    "ledgerTransaction": {
+      "title": "LedgerTransaction",
+      "description": "Immutable ledger record for all virtual coin operations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userMobile": { "type": "string" },
+        "type": { "type": "string" },
+        "amount": { "type": "number" },
+        "balanceBefore": { "type": "number" },
+        "balanceAfter": { "type": "number" },
+        "description": { "type": "string" },
+        "referenceId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["id", "userId", "type", "amount", "balanceBefore", "balanceAfter", "createdAt"]
+    },
+    "adminActivityLog": {
+      "title": "AdminActivityLog",
+      "description": "Audit trail of admin approvals and manual adjustments",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adminUid": { "type": "string" },
+        "adminEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "targetUserId": { "type": "string" },
+        "details": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "adminUid", "action", "createdAt"]
+    },
+    "systemSettings": {
+      "title": "SystemSettings",
+      "description": "Global system configurations, game controls, and administrative security settings",
+      "type": "object",
+      "properties": {
+        "adminPasswordHash": { "type": "string" },
+        "recoveryEmail": { "type": "string" },
+        "nextForcedColor": { "type": "string" },
+        "mode": { "type": "string" },
+        "autoResetForcedColor": { "type": "boolean" },
+        "bettingDurationSeconds": { "type": "number" },
+        "updatedAt": { "type": "number" },
+        "updatedBy": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "user",
+      "description": "User profiles and virtual coin balance"
+    },
+    "/rounds/{roundId}": {
+      "schema": "round",
+      "description": "Synchronized global spin wheel rounds"
+    },
+    "/coin_requests/{requestId}": {
+      "schema": "coinRequest",
+      "description": "Virtual coin approval requests"
+    },
+    "/bets/{betId}": {
+      "schema": "bet",
+      "description": "Player bets on active rounds"
+    },
+    "/ledger/{txId}": {
+      "schema": "ledgerTransaction",
+      "description": "Transaction ledger of all virtual coin credits and debits"
+    },
+    "/admin_logs/{logId}": {
+      "schema": "adminActivityLog",
+      "description": "Audit logs of administrative actions"
+    },
+    "/system_settings/{docId}": {
+      "schema": "systemSettings",
+      "description": "System and admin security configuration"
+    }
+  }
+}
