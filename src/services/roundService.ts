@@ -37,7 +37,7 @@ export const CURRENT_ROUND_DOC = 'current_round';
 export function calculateTargetAngle(
   color: WheelColor,
   baseAngle = 0,
-  fullRotations = 21 // 0.5x faster rotational speed (1.5x revolutions)
+  fullRotations = 42 // 2x faster rotational speed (doubled revolutions from 21 to 42)
 ): number {
   const slice = WHEEL_SLICES.find((s) => s.name === color);
   if (!slice) return baseAngle + fullRotations * 360;
@@ -51,7 +51,7 @@ export function calculateTargetAngle(
 
   const currentTurns = Math.floor(baseAngle / 360) * 360;
   let target = currentTurns + fullRotations * 360 + stopOffset;
-  while (target <= baseAngle + 18 * 360) {
+  while (target <= baseAngle + 36 * 360) {
     target += 360;
   }
 
@@ -344,7 +344,7 @@ export async function overrideCurrentRoundWinningColor(
     if (!snap.exists()) throw new Error('Active round not found.');
     const round = snap.data() as GameRound;
 
-    const baseAngle = round.targetAngle ? round.targetAngle - 7 * 360 : 0;
+    const baseAngle = round.targetAngle ? round.targetAngle - 36 * 360 : 0;
     const newTargetAngle = calculateTargetAngle(color, baseAngle);
 
     await updateDoc(currentRef, {

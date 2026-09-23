@@ -36,6 +36,7 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
   const lastPegIndexRef = useRef<number>(-1);
   const needleDeflectionRef = useRef<number>(0);
   const hasPlayedRevealRef = useRef<string | null>(null);
+  const lastPegSoundTimeRef = useRef<number>(0);
 
   // Sound effects & Visual Flash state
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
@@ -428,9 +429,9 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
       const spinStartTime = spinEndTime - spinDuration;
       const startAngle = startAngleRef.current;
 
-      // Ensure target is strictly forward from startAngle by 18-22 revolutions (0.5x faster wheel speed)
+      // Ensure target is strictly forward from startAngle by 36-44 revolutions (2x faster wheel speed)
       let finalTarget = round.targetAngle;
-      while (finalTarget <= startAngle + 18 * 360) {
+      while (finalTarget <= startAngle + 36 * 360) {
         finalTarget += 360;
       }
       targetAngleRef.current = finalTarget;
@@ -456,7 +457,11 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
 
         if (pegIndex !== lastPegIndexRef.current) {
           lastPegIndexRef.current = pegIndex;
-          playPegSound(rawProgress);
+          const nowMs = performance.now();
+          if (nowMs - lastPegSoundTimeRef.current >= 24) {
+            lastPegSoundTimeRef.current = nowMs;
+            playPegSound(rawProgress);
+          }
         }
 
         if (pointerRef.current) {
