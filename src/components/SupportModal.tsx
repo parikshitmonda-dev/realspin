@@ -82,7 +82,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({ onClose }) => {
             <li>No real-money deposits, withdrawals, or cryptocurrency.</li>
             <li>New players start with 0 Coins (request coins from Admin).</li>
             <li>Prizes pay 4× the bet on the matching color.</li>
-            <li>Rounds synchronize globally every 3 minutes.</li>
+            <li>Rounds synchronize globally every 4 minutes.</li>
           </ul>
         </div>
 

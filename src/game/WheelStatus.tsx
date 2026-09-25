@@ -119,12 +119,12 @@ export const WheelStatus: React.FC<WheelStatusProps> = ({ round, timeLeftMs }) =
               </div>
             </div>
           ) : (
-            <div className="bg-emerald-950/50 border border-emerald-800/70 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-center shadow-inner">
+            <div className="bg-emerald-950/60 border border-emerald-700/80 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-center shadow-inner">
               <div className="text-[9.5px] sm:text-[10px] uppercase tracking-wider text-emerald-300 font-bold">
-                NEW ROUND
+                {totalSeconds > 0 ? 'STARTING IN' : 'STARTING'}
               </div>
-              <div className="font-mono text-xs sm:text-sm font-black text-emerald-200 tracking-widest leading-none mt-1">
-                NEXT SOON
+              <div className="font-mono text-base sm:text-lg font-black text-emerald-300 tracking-widest leading-none mt-1">
+                {totalSeconds > 0 ? formattedTime : 'NOW...'}
               </div>
             </div>
           )}

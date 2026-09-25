@@ -1258,16 +1258,20 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
               </p>
               <div className="flex items-center gap-2 flex-wrap pt-1">
                 {[
-                  { label: '⚡ 30s (Turbo)', sec: 30 },
+                  { label: '🎯 4 Min (Default - 240s)', sec: 240 },
+                  { label: '⏳ 2 Min (120s)', sec: 120 },
                   { label: '⏱️ 60s (Fast)', sec: 60 },
-                  { label: '🎯 80s (Standard)', sec: 80 },
-                  { label: '⏳ 120s (Extended)', sec: 120 },
+                  { label: '⚡ 30s (Turbo)', sec: 30 },
                 ].map((t) => (
                   <button
                     key={t.sec}
                     type="button"
                     onClick={() => handleChangeBettingDuration(t.sec)}
-                    className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-mono font-semibold transition-colors"
+                    className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-semibold transition-colors ${
+                      (gameSettings?.bettingDurationSeconds || 240) === t.sec
+                        ? 'border-amber-500 bg-amber-500/20 text-amber-300 shadow-sm ring-1 ring-amber-500/40'
+                        : 'border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200'
+                    }`}
                   >
                     {t.label}
                   </button>

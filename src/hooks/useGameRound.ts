@@ -6,6 +6,7 @@ import {
   subscribeRecentWinningColors,
   getCachedCurrentRound,
 } from '../services/roundService';
+import { RESULT_DISPLAY_MS } from '../utils/constants';
 import confetti from 'canvas-confetti';
 
 export function useGameRound() {
@@ -18,6 +19,8 @@ export function useGameRound() {
       return Math.max(0, cached.bettingEndTime - now);
     } else if (cached.status === 'SPINNING') {
       return Math.max(0, cached.spinEndTime - now);
+    } else if (cached.status === 'COMPLETED') {
+      return Math.max(0, cached.spinEndTime + RESULT_DISPLAY_MS - now);
     }
     return 0;
   });
@@ -41,7 +44,9 @@ export function useGameRound() {
   // 1. Subscribe to Firestore current round
   useEffect(() => {
     const unsub = subscribeCurrentRound((curRound) => {
-      setRound(curRound);
+      if (curRound) {
+        setRound(curRound);
+      }
     });
     return () => unsub();
   }, []);
@@ -62,24 +67,34 @@ export function useGameRound() {
       const now = Date.now();
 
       // Advance round lifecycle if needed (handles BETTING_OPEN -> SPINNING -> COMPLETED -> Next Round)
-      syncRoundProgress(round).catch(() => {});
+      syncRoundProgress(round)
+        .then((updated) => {
+          if (updated && updated.id !== round.id) {
+            setRound(updated);
+          } else if (updated && updated.status !== round.status) {
+            setRound(updated);
+          }
+        })
+        .catch(() => {});
 
       if (round.status === 'BETTING_OPEN') {
         const remaining = Math.max(0, round.bettingEndTime - now);
         setTimeLeftMs(remaining);
         setIsSpinningVisual(false);
         if (remaining <= 0) {
-          setRound((prev) => (prev ? { ...prev, status: 'SPINNING' } : null));
+          setIsSpinningVisual(true);
+          setRound((prev) => (prev && prev.id === round.id ? { ...prev, status: 'SPINNING' } : prev));
         }
       } else if (round.status === 'SPINNING') {
         const spinRemaining = Math.max(0, round.spinEndTime - now);
         setTimeLeftMs(spinRemaining);
         setIsSpinningVisual(true);
         if (spinRemaining <= 0) {
-          setRound((prev) => (prev ? { ...prev, status: 'COMPLETED' } : null));
+          setRound((prev) => (prev && prev.id === round.id ? { ...prev, status: 'COMPLETED' } : prev));
         }
       } else if (round.status === 'COMPLETED') {
-        setTimeLeftMs(0);
+        const nextRoundCountdown = Math.max(0, round.spinEndTime + RESULT_DISPLAY_MS - now);
+        setTimeLeftMs(nextRoundCountdown);
         setIsSpinningVisual(false);
         setWheelRotation(round.targetAngle);
       }

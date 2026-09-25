@@ -74,7 +74,7 @@ export const WHEEL_SLICES: WheelSliceConfig[] = [
 export const WIN_MULTIPLIER = 4; // 4x payout on winning color
 
 // Timing config
-export const ROUND_DURATION_MS = 180 * 1000; // 3 minutes betting duration before wheel spins
+export const ROUND_DURATION_MS = 240 * 1000; // 4 minutes (240s) default automatic wheel movement timing
 export const MIN_SPIN_DURATION_MS = 20 * 1000; // 20s wheel movement time (20 to 30 seconds)
 export const MAX_SPIN_DURATION_MS = 30 * 1000; // 30s wheel movement time
 export const BETTING_CLOSES_BEFORE_SPIN_MS = 5 * 1000; // 5s betting closed buffer before spin
