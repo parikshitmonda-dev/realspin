@@ -122,8 +122,8 @@ export const BettingButtons: React.FC<BettingButtonsProps> = ({
         </span>
       </div>
 
-      {/* 5 Betting Tabs: enlarged to comfortably fill mobile width with clear visibility */}
-      <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5 w-full">
+      {/* 5 Betting Tabs: slightly shorter width & optimized height to fit mobile screen without clipping green/purple */}
+      <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 w-full">
         {WHEEL_SLICES.map((slice) => {
           const style = buttonStyles[slice.name];
           const colorBets = userBets.filter((b) => b.selectedColor === slice.name);
@@ -137,7 +137,7 @@ export const BettingButtons: React.FC<BettingButtonsProps> = ({
               type="button"
               disabled={disabled}
               onClick={() => onSelectColor(slice.name)}
-              className={`relative overflow-hidden rounded-xl sm:rounded-2xl border py-2.5 sm:py-3 px-1.5 sm:px-2 w-[calc(33.333%-6px)] sm:w-[118px] min-w-[106px] max-w-[125px] flex-shrink-0 flex flex-col items-center justify-center gap-0.5 sm:gap-1 transition-all duration-200 active:scale-95 bg-gradient-to-b ${style.gradient} ${style.border} ${style.hover} ${style.glow} shadow-md ${
+              className={`relative overflow-hidden rounded-xl sm:rounded-2xl border py-2 sm:py-2.5 px-1 sm:px-2 w-[calc(33.333%-8px)] sm:w-[110px] min-w-[94px] max-w-[115px] flex-shrink-0 flex flex-col items-center justify-center gap-0.5 sm:gap-1 transition-all duration-200 active:scale-95 bg-gradient-to-b ${style.gradient} ${style.border} ${style.hover} ${style.glow} shadow-md ${
                 isWinningColor ? 'ring-2 sm:ring-4 ring-amber-400 animate-pulse' : ''
               }`}
             >
