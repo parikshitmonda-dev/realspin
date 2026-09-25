@@ -16,9 +16,9 @@ interface ColorBulletMeta {
   primerColor: string;
 }
 
-const COLOR_BULLET_CONFIG: Record<WheelColor, ColorBulletMeta> = {
-  'DARK RED': {
-    name: 'DARK RED',
+const COLOR_BULLET_CONFIG: Record<string, ColorBulletMeta> = {
+  RED: {
+    name: 'RED',
     shortLabel: 'RED',
     gradient: 'linear-gradient(135deg, #7f1d1d 0%, #b91c1c 50%, #ef4444 100%)',
     borderColor: '#ef4444',
@@ -26,8 +26,17 @@ const COLOR_BULLET_CONFIG: Record<WheelColor, ColorBulletMeta> = {
     glowColor: 'rgba(239, 68, 68, 0.55)',
     primerColor: '#450a0a',
   },
-  'DARK PINK': {
-    name: 'DARK PINK',
+  'DARK RED': {
+    name: 'RED',
+    shortLabel: 'RED',
+    gradient: 'linear-gradient(135deg, #7f1d1d 0%, #b91c1c 50%, #ef4444 100%)',
+    borderColor: '#ef4444',
+    textColor: '#fee2e2',
+    glowColor: 'rgba(239, 68, 68, 0.55)',
+    primerColor: '#450a0a',
+  },
+  PINK: {
+    name: 'PINK',
     shortLabel: 'PINK',
     gradient: 'linear-gradient(135deg, #831843 0%, #be185d 50%, #ec4899 100%)',
     borderColor: '#ec4899',
@@ -35,8 +44,17 @@ const COLOR_BULLET_CONFIG: Record<WheelColor, ColorBulletMeta> = {
     glowColor: 'rgba(236, 72, 153, 0.55)',
     primerColor: '#500724',
   },
-  'DARK BLUE': {
-    name: 'DARK BLUE',
+  'DARK PINK': {
+    name: 'PINK',
+    shortLabel: 'PINK',
+    gradient: 'linear-gradient(135deg, #831843 0%, #be185d 50%, #ec4899 100%)',
+    borderColor: '#ec4899',
+    textColor: '#fce7f3',
+    glowColor: 'rgba(236, 72, 153, 0.55)',
+    primerColor: '#500724',
+  },
+  BLUE: {
+    name: 'BLUE',
     shortLabel: 'BLUE',
     gradient: 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #3b82f6 100%)',
     borderColor: '#3b82f6',
@@ -44,8 +62,17 @@ const COLOR_BULLET_CONFIG: Record<WheelColor, ColorBulletMeta> = {
     glowColor: 'rgba(59, 130, 246, 0.55)',
     primerColor: '#172554',
   },
-  'DARK GREEN': {
-    name: 'DARK GREEN',
+  'DARK BLUE': {
+    name: 'BLUE',
+    shortLabel: 'BLUE',
+    gradient: 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #3b82f6 100%)',
+    borderColor: '#3b82f6',
+    textColor: '#dbeafe',
+    glowColor: 'rgba(59, 130, 246, 0.55)',
+    primerColor: '#172554',
+  },
+  GREEN: {
+    name: 'GREEN',
     shortLabel: 'GRN',
     gradient: 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #10b981 100%)',
     borderColor: '#10b981',
@@ -53,8 +80,26 @@ const COLOR_BULLET_CONFIG: Record<WheelColor, ColorBulletMeta> = {
     glowColor: 'rgba(16, 185, 129, 0.55)',
     primerColor: '#022c22',
   },
+  'DARK GREEN': {
+    name: 'GREEN',
+    shortLabel: 'GRN',
+    gradient: 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #10b981 100%)',
+    borderColor: '#10b981',
+    textColor: '#d1fae5',
+    glowColor: 'rgba(16, 185, 129, 0.55)',
+    primerColor: '#022c22',
+  },
+  PURPLE: {
+    name: 'PURPLE',
+    shortLabel: 'PURP',
+    gradient: 'linear-gradient(135deg, #581c87 0%, #7e22ce 50%, #a855f7 100%)',
+    borderColor: '#a855f7',
+    textColor: '#f3e8ff',
+    glowColor: 'rgba(168, 85, 247, 0.55)',
+    primerColor: '#3b0764',
+  },
   'DARK PURPLE': {
-    name: 'DARK PURPLE',
+    name: 'PURPLE',
     shortLabel: 'PURP',
     gradient: 'linear-gradient(135deg, #581c87 0%, #7e22ce 50%, #a855f7 100%)',
     borderColor: '#a855f7',
@@ -71,11 +116,11 @@ export const RecentResultsBullets: React.FC<RecentResultsBulletsProps> = ({
 
   // Guarantee 5 bullet shapes are always shown
   const fallbackDefaults: WheelColor[] = [
-    'DARK RED',
-    'DARK BLUE',
-    'DARK GREEN',
-    'DARK PINK',
-    'DARK PURPLE',
+    'RED',
+    'BLUE',
+    'GREEN',
+    'PINK',
+    'PURPLE',
   ];
 
   const displayList =
@@ -105,7 +150,10 @@ export const RecentResultsBullets: React.FC<RecentResultsBulletsProps> = ({
         <div className="flex items-center gap-1.5 sm:gap-2">
           {displayList.map((color, idx) => {
             const isLatest = idx === 0;
-            const config = COLOR_BULLET_CONFIG[color] || COLOR_BULLET_CONFIG['DARK RED'];
+            const config =
+              COLOR_BULLET_CONFIG[color] ||
+              COLOR_BULLET_CONFIG[color.replace('DARK ', '')] ||
+              COLOR_BULLET_CONFIG['RED'];
 
             return (
               <div

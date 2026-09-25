@@ -24,7 +24,9 @@ export const WheelStatus: React.FC<WheelStatusProps> = ({ round, timeLeftMs }) =
   const seconds = totalSeconds % 60;
   const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-  const winningSlice = WHEEL_SLICES.find((s) => s.name === round.winningColor);
+  const winningSlice = WHEEL_SLICES.find(
+    (s) => s.name === round.winningColor || s.name === round.winningColor?.replace('DARK ', '')
+  );
 
   return (
     <div className="w-full max-w-[385px] sm:max-w-[410px] mx-auto px-1.5 sm:px-2 py-1 flex flex-col items-center select-none">
@@ -88,7 +90,7 @@ export const WheelStatus: React.FC<WheelStatusProps> = ({ round, timeLeftMs }) =
               />
               <div>
                 <div className="text-xs sm:text-sm font-black tracking-wider text-slate-100 flex items-center gap-1">
-                  WINNER: <span style={{ color: winningSlice?.accentColor || '#60a5fa' }}>{round.winningColor}</span>
+                  WINNER: <span style={{ color: winningSlice?.accentColor || '#60a5fa' }}>{round.winningColor?.replace('DARK ', '')}</span>
                 </div>
                 <div className="text-[10.5px] sm:text-xs text-amber-400 font-bold">4× Payouts Distributed!</div>
               </div>

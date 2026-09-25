@@ -1,4 +1,14 @@
-export type WheelColor = 'DARK RED' | 'DARK PINK' | 'DARK BLUE' | 'DARK GREEN' | 'DARK PURPLE';
+export type WheelColor =
+  | 'RED'
+  | 'PINK'
+  | 'BLUE'
+  | 'GREEN'
+  | 'PURPLE'
+  | 'DARK RED'
+  | 'DARK PINK'
+  | 'DARK BLUE'
+  | 'DARK GREEN'
+  | 'DARK PURPLE';
 
 export interface WheelSliceConfig {
   name: WheelColor;

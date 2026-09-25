@@ -827,7 +827,9 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   // Calculate live bets distribution per color
   const totalBetsCoins = currentBets.reduce((acc, b) => acc + Number(b.amount || 0), 0);
   const colorBreakdowns = WHEEL_COLORS.map((c) => {
-    const betsOnColor = currentBets.filter((b) => b.selectedColor === c);
+    const betsOnColor = currentBets.filter(
+      (b) => b.selectedColor === c || b.selectedColor === `DARK ${c}` || b.selectedColor?.replace('DARK ', '') === c
+    );
     const coinsOnColor = betsOnColor.reduce((acc, b) => acc + Number(b.amount || 0), 0);
     const count = betsOnColor.length;
     const projectedPayout = coinsOnColor * 4;
@@ -1093,7 +1095,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                               style={{ backgroundColor: slice.borderColor }}
                             />
                             <span className="font-bold text-[11px] text-slate-200 truncate">
-                              {slice.name}
+                              {slice.name.replace('DARK ', '')}
                             </span>
                             {isCurrentTarget && (
                               <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-400 text-slate-950">
@@ -1166,7 +1168,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                 </div>
                 {gameSettings?.nextForcedColor && (
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-700">
-                    NEXT PRESET: {gameSettings.nextForcedColor}
+                    NEXT PRESET: {gameSettings.nextForcedColor.replace('DARK ', '')}
                   </span>
                 )}
               </div>
@@ -1214,7 +1216,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                         : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    <div className="font-bold text-[11px] text-slate-200">{col}</div>
+                    <div className="font-bold text-[11px] text-slate-200">{col.replace('DARK ', '')}</div>
                     <div className="text-[10px] text-slate-500">Preset color</div>
                   </button>
                 ))}

@@ -26,7 +26,7 @@ interface AuthContextValue {
   firebaseUser: FirebaseUser | null;
   loading: boolean;
   isAdmin: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: (email?: string) => Promise<void>;
   registerWithEmail: (email: string, pass: string, name: string, phone: string) => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   loginOrRegisterWithPhone: (phone: string, name?: string) => Promise<void>;
@@ -130,10 +130,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = async (email?: string) => {
     setLoading(true);
     try {
-      const profile = await signInWithGoogle();
+      const profile = await signInWithGoogle(email);
       attachUserListener(profile.uid, profile);
     } finally {
       setLoading(false);

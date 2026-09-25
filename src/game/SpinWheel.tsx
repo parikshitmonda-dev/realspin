@@ -583,11 +583,16 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
   };
 
   // Predefined slice gradients
-  const sliceGradients: Record<WheelColor, { start: string; mid: string; end: string }> = {
+  const sliceGradients: Record<string, { start: string; mid: string; end: string }> = {
+    RED: { start: '#5e0d0d', mid: '#8a1313', end: '#b91c1c' },
     'DARK RED': { start: '#5e0d0d', mid: '#8a1313', end: '#b91c1c' },
+    PINK: { start: '#5d0e34', mid: '#831843', end: '#be185d' },
     'DARK PINK': { start: '#5d0e34', mid: '#831843', end: '#be185d' },
+    BLUE: { start: '#111d4a', mid: '#1e3a8a', end: '#2563eb' },
     'DARK BLUE': { start: '#111d4a', mid: '#1e3a8a', end: '#2563eb' },
+    GREEN: { start: '#09361a', mid: '#14532d', end: '#15803d' },
     'DARK GREEN': { start: '#09361a', mid: '#14532d', end: '#15803d' },
+    PURPLE: { start: '#380c59', mid: '#581c87', end: '#7e22ce' },
     'DARK PURPLE': { start: '#380c59', mid: '#581c87', end: '#7e22ce' },
   };
 
@@ -746,12 +751,16 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
                         textAnchor="middle"
                         dominantBaseline="middle"
                         fill="#ffffff"
-                        fontSize="11"
-                        fontWeight="700"
-                        letterSpacing="0.08em"
-                        className="font-sans drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]"
+                        fontSize="14.5"
+                        fontWeight="900"
+                        letterSpacing="0.12em"
+                        stroke="#000000"
+                        strokeWidth="0.8"
+                        strokeLinejoin="round"
+                        paintOrder="stroke fill"
+                        className="font-sans drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] select-none uppercase tracking-wider"
                       >
-                        {slice.label}
+                        {slice.label.replace('DARK ', '')}
                       </text>
                     </g>
                   </g>

@@ -39,7 +39,8 @@ export function calculateTargetAngle(
   baseAngle = 0,
   fullRotations = 54 // 0.5x faster rotational speed (increased revolutions from 36-42 to 48-54)
 ): number {
-  const slice = WHEEL_SLICES.find((s) => s.name === color);
+  const normColor = color.replace('DARK ', '');
+  const slice = WHEEL_SLICES.find((s) => s.name === color || s.name === normColor);
   if (!slice) return baseAngle + fullRotations * 360;
 
   // Midpoint angle of slice relative to top (12 o'clock)
@@ -801,11 +802,11 @@ export function subscribeRecentWinningColors(
   callback: (colors: WheelColor[]) => void
 ): () => void {
   const DEFAULT_COLORS: WheelColor[] = [
-    'DARK RED',
-    'DARK BLUE',
-    'DARK GREEN',
-    'DARK PINK',
-    'DARK PURPLE',
+    'RED',
+    'BLUE',
+    'GREEN',
+    'PINK',
+    'PURPLE',
   ];
 
   // Immediate cached render to eliminate layout shift or loading delay

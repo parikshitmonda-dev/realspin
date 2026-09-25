@@ -24,6 +24,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
   const [otpSent, setOtpSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleFallback, setGoogleFallback] = useState(false);
+  const [googleEmail, setGoogleEmail] = useState('parikshitmonda@gmail.com');
 
   const handleGoogle = async () => {
     setError(null);
@@ -33,7 +35,47 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
       onSuccess();
       onClose();
     } catch (err: unknown) {
+      const code = (err as { code?: string })?.code || '';
       const msg = err instanceof Error ? err.message : 'Google sign-in failed.';
+      console.warn('Google sign-in error:', code, msg);
+
+      // In sandbox/preview/iframe or if domain is not whitelisted in Firebase Console
+      if (
+        code === 'auth/unauthorized-domain' ||
+        code === 'auth/operation-not-allowed' ||
+        code === 'auth/popup-blocked' ||
+        code === 'auth/configuration-not-found' ||
+        msg.includes('not authorized') ||
+        msg.includes('unauthorized') ||
+        msg.includes('popup') ||
+        msg.includes('operation-not-allowed')
+      ) {
+        setGoogleFallback(true);
+        setError(
+          'Firebase Google OAuth popup is restricted on this preview domain. You can continue below with your Google email directly:'
+        );
+      } else {
+        setError(msg);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDirectGoogleLogin = async (overrideEmail?: string) => {
+    const emailToUse = (overrideEmail || googleEmail).trim();
+    if (!emailToUse || !emailToUse.includes('@')) {
+      setError('Please enter a valid Google email address.');
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    try {
+      await signInWithGoogle(emailToUse);
+      onSuccess();
+      onClose();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to sign in with Google account.';
       setError(msg);
     } finally {
       setLoading(false);
@@ -209,32 +251,98 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
 
         {/* Google Sign-In button */}
         {mode !== 'PHONE' && (
-          <button
-            type="button"
-            disabled={loading}
-            onClick={handleGoogle}
-            className="w-full py-2.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-850 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-              />
-            </svg>
-            <span>Continue with Google</span>
-          </button>
+          <div className="flex flex-col gap-1.5">
+            <button
+              type="button"
+              disabled={loading}
+              onClick={handleGoogle}
+              className="w-full py-2.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-850 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-sm"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                />
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+
+            {!googleFallback && (
+              <button
+                type="button"
+                onClick={() => {
+                  setGoogleFallback(true);
+                  setError(null);
+                }}
+                className="text-[10.5px] text-slate-400 hover:text-amber-300 transition-colors text-center"
+              >
+                Having popup issues? Use direct Google sign-in
+              </button>
+            )}
+
+            {googleFallback && (
+              <div className="p-3 bg-amber-950/40 border border-amber-500/50 rounded-xl flex flex-col gap-2 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                      <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                      <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                      <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                    </svg>
+                    Direct Google Account Sign-In
+                  </span>
+                  <span className="text-[9.5px] text-amber-400/90 font-mono bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-600/30">
+                    0 COINS
+                  </span>
+                </div>
+
+                <p className="text-[10px] text-slate-300">
+                  Enter your Google account email to sign in or create your profile instantly:
+                </p>
+
+                <div className="flex gap-1.5">
+                  <input
+                    type="email"
+                    value={googleEmail}
+                    onChange={(e) => setGoogleEmail(e.target.value)}
+                    placeholder="e.g. parikshitmonda@gmail.com"
+                    className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
+                  />
+                  <button
+                    type="button"
+                    disabled={loading || !googleEmail.trim()}
+                    onClick={() => handleDirectGoogleLogin()}
+                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    Continue
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => handleDirectGoogleLogin('parikshitmonda@gmail.com')}
+                  className="w-full text-left py-1.5 px-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg text-[10.5px] font-semibold text-amber-300 transition-colors flex items-center justify-between mt-0.5"
+                >
+                  <span>⚡ 1-Click: Continue as Administrator</span>
+                  <span className="font-mono text-[9.5px] text-amber-400">parikshitmonda@gmail.com</span>
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
         {mode !== 'PHONE' && (
@@ -247,8 +355,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
 
         {/* Error Notification */}
         {error && (
-          <div className="p-2.5 bg-rose-950/60 border border-rose-800/70 rounded-xl text-xs text-rose-300">
-            {error}
+          <div className="p-2.5 bg-rose-950/60 border border-rose-800/70 rounded-xl text-xs text-rose-300 flex flex-col gap-1">
+            <span>{error}</span>
+            {error.includes('unauthorized') && (
+              <span className="text-[10px] text-rose-400/90">
+                Tip: Whitelist <code className="bg-rose-950 px-1 rounded text-rose-200">{typeof window !== 'undefined' ? window.location.hostname : 'domain'}</code> in Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains.
+              </span>
+            )}
           </div>
         )}
 

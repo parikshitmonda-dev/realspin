@@ -19,7 +19,7 @@ export const BettingButtons: React.FC<BettingButtonsProps> = ({
 
   // Specific styling for each of the 5 exact colors
   const buttonStyles: Record<
-    WheelColor,
+    string,
     {
       gradient: string;
       border: string;
@@ -29,43 +29,83 @@ export const BettingButtons: React.FC<BettingButtonsProps> = ({
       activeGlow: string;
     }
   > = {
-    'DARK RED': {
+    RED: {
       gradient: 'from-red-950 via-red-900 to-rose-950',
-      border: 'border-red-600/60',
-      hover: 'hover:border-red-500 hover:from-red-900 hover:to-rose-900',
-      glow: 'shadow-[0_4px_15px_rgba(220,38,38,0.25)]',
+      border: 'border-red-600/70',
+      hover: 'hover:border-red-400 hover:from-red-900 hover:to-rose-900',
+      glow: 'shadow-[0_4px_18px_rgba(220,38,38,0.3)]',
       icon: '🔴',
       activeGlow: 'ring-2 ring-red-400',
     },
-    'DARK PINK': {
+    'DARK RED': {
+      gradient: 'from-red-950 via-red-900 to-rose-950',
+      border: 'border-red-600/70',
+      hover: 'hover:border-red-400 hover:from-red-900 hover:to-rose-900',
+      glow: 'shadow-[0_4px_18px_rgba(220,38,38,0.3)]',
+      icon: '🔴',
+      activeGlow: 'ring-2 ring-red-400',
+    },
+    PINK: {
       gradient: 'from-pink-950 via-pink-900 to-fuchsia-950',
-      border: 'border-pink-600/60',
-      hover: 'hover:border-pink-500 hover:from-pink-900 hover:to-fuchsia-900',
-      glow: 'shadow-[0_4px_15px_rgba(219,39,119,0.25)]',
+      border: 'border-pink-600/70',
+      hover: 'hover:border-pink-400 hover:from-pink-900 hover:to-fuchsia-900',
+      glow: 'shadow-[0_4px_18px_rgba(219,39,119,0.3)]',
       icon: '💗',
       activeGlow: 'ring-2 ring-pink-400',
     },
-    'DARK BLUE': {
+    'DARK PINK': {
+      gradient: 'from-pink-950 via-pink-900 to-fuchsia-950',
+      border: 'border-pink-600/70',
+      hover: 'hover:border-pink-400 hover:from-pink-900 hover:to-fuchsia-900',
+      glow: 'shadow-[0_4px_18px_rgba(219,39,119,0.3)]',
+      icon: '💗',
+      activeGlow: 'ring-2 ring-pink-400',
+    },
+    BLUE: {
       gradient: 'from-blue-950 via-blue-900 to-indigo-950',
-      border: 'border-blue-600/60',
-      hover: 'hover:border-blue-500 hover:from-blue-900 hover:to-indigo-900',
-      glow: 'shadow-[0_4px_15px_rgba(37,99,235,0.25)]',
+      border: 'border-blue-600/70',
+      hover: 'hover:border-blue-400 hover:from-blue-900 hover:to-indigo-900',
+      glow: 'shadow-[0_4px_18px_rgba(37,99,235,0.3)]',
       icon: '🔵',
       activeGlow: 'ring-2 ring-blue-400',
     },
-    'DARK GREEN': {
+    'DARK BLUE': {
+      gradient: 'from-blue-950 via-blue-900 to-indigo-950',
+      border: 'border-blue-600/70',
+      hover: 'hover:border-blue-400 hover:from-blue-900 hover:to-indigo-900',
+      glow: 'shadow-[0_4px_18px_rgba(37,99,235,0.3)]',
+      icon: '🔵',
+      activeGlow: 'ring-2 ring-blue-400',
+    },
+    GREEN: {
       gradient: 'from-emerald-950 via-emerald-900 to-green-950',
-      border: 'border-emerald-600/60',
-      hover: 'hover:border-emerald-500 hover:from-emerald-900 hover:to-green-900',
-      glow: 'shadow-[0_4px_15px_rgba(22,163,74,0.25)]',
+      border: 'border-emerald-600/70',
+      hover: 'hover:border-emerald-400 hover:from-emerald-900 hover:to-green-900',
+      glow: 'shadow-[0_4px_18px_rgba(22,163,74,0.3)]',
       icon: '🟢',
       activeGlow: 'ring-2 ring-emerald-400',
     },
+    'DARK GREEN': {
+      gradient: 'from-emerald-950 via-emerald-900 to-green-950',
+      border: 'border-emerald-600/70',
+      hover: 'hover:border-emerald-400 hover:from-emerald-900 hover:to-green-900',
+      glow: 'shadow-[0_4px_18px_rgba(22,163,74,0.3)]',
+      icon: '🟢',
+      activeGlow: 'ring-2 ring-emerald-400',
+    },
+    PURPLE: {
+      gradient: 'from-purple-950 via-purple-900 to-violet-950',
+      border: 'border-purple-600/70',
+      hover: 'hover:border-purple-400 hover:from-purple-900 hover:to-violet-900',
+      glow: 'shadow-[0_4px_18px_rgba(147,51,234,0.3)]',
+      icon: '🟣',
+      activeGlow: 'ring-2 ring-purple-400',
+    },
     'DARK PURPLE': {
       gradient: 'from-purple-950 via-purple-900 to-violet-950',
-      border: 'border-purple-600/60',
-      hover: 'hover:border-purple-500 hover:from-purple-900 hover:to-violet-900',
-      glow: 'shadow-[0_4px_15px_rgba(147,51,234,0.25)]',
+      border: 'border-purple-600/70',
+      hover: 'hover:border-purple-400 hover:from-purple-900 hover:to-violet-900',
+      glow: 'shadow-[0_4px_18px_rgba(147,51,234,0.3)]',
       icon: '🟣',
       activeGlow: 'ring-2 ring-purple-400',
     },
@@ -103,9 +143,9 @@ export const BettingButtons: React.FC<BettingButtonsProps> = ({
             >
               {/* Top Row: Icon and Label */}
               <div className="flex items-center justify-center gap-1.5 z-10 w-full px-0.5">
-                <span className="text-sm sm:text-base shrink-0">{style.icon}</span>
-                <span className="font-black text-[10.5px] sm:text-xs tracking-tight text-slate-100 uppercase truncate">
-                  {slice.label}
+                <span className="text-base sm:text-lg shrink-0 drop-shadow-sm">{style?.icon || '●'}</span>
+                <span className="font-black text-xs sm:text-[14px] tracking-wide text-white uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">
+                  {slice.label.replace('DARK ', '')}
                 </span>
               </div>
 

@@ -99,14 +99,88 @@ export async function ensureUserProfile(
   return newProfile;
 }
 
-export async function signInWithGoogle(): Promise<UserProfile> {
-  const result = await signInWithPopup(auth, googleProvider);
-  const profile = await ensureUserProfile(result.user);
+export async function loginOrRegisterGoogleUser(
+  email: string,
+  displayName?: string
+): Promise<UserProfile> {
+  const normalizedEmail = email.toLowerCase().trim();
+  if (!normalizedEmail || !normalizedEmail.includes('@')) {
+    throw new Error('Please enter a valid Google email address.');
+  }
+
+  const isAdmin = normalizedEmail === ADMIN_EMAIL.toLowerCase();
+  const uid = generateUserUid(normalizedEmail);
+  const userRef = doc(db, 'users', uid);
+  const snap = await getDoc(userRef);
+
+  if (snap.exists()) {
+    const existing = snap.data() as UserProfile;
+    if (existing.isActive === false) {
+      throw new Error('Your account has been deactivated. Please contact an administrator.');
+    }
+    if (isAdmin && existing.role !== 'admin') {
+      await updateDoc(userRef, { role: 'admin' });
+      existing.role = 'admin';
+    }
+    localStorage.setItem(
+      'virtual_spin_active_session',
+      JSON.stringify({ uid, email: existing.email })
+    );
+    return existing;
+  }
+
+  const newProfile: UserProfile = {
+    uid,
+    fullName:
+      displayName?.trim() ||
+      (isAdmin ? 'Chief Administrator' : normalizedEmail.split('@')[0].toUpperCase()),
+    mobileNumber: '',
+    email: normalizedEmail,
+    balance: 0,
+    role: isAdmin ? 'admin' : 'user',
+    isActive: true,
+    createdAt: Date.now(),
+  };
+
+  await setDoc(userRef, newProfile);
   localStorage.setItem(
     'virtual_spin_active_session',
-    JSON.stringify({ uid: profile.uid, email: profile.email })
+    JSON.stringify({ uid, email: newProfile.email })
   );
-  return profile;
+  return newProfile;
+}
+
+export async function signInWithGoogle(fallbackEmail?: string): Promise<UserProfile> {
+  if (fallbackEmail) {
+    return loginOrRegisterGoogleUser(fallbackEmail);
+  }
+
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const profile = await ensureUserProfile(result.user);
+    localStorage.setItem(
+      'virtual_spin_active_session',
+      JSON.stringify({ uid: profile.uid, email: profile.email })
+    );
+    return profile;
+  } catch (fbErr: unknown) {
+    const errCode = (fbErr as { code?: string })?.code || '';
+    const errMsg = fbErr instanceof Error ? fbErr.message : '';
+    console.warn('Firebase Google Auth popup error:', errCode, errMsg);
+
+    // If popup was blocked or domain not authorized, provide clear error with code attached
+    const customErr = new Error(
+      errCode === 'auth/unauthorized-domain'
+        ? `This domain (${typeof window !== 'undefined' ? window.location.hostname : 'preview'}) is not authorized in Firebase Console Auth settings.`
+        : errCode === 'auth/operation-not-allowed'
+        ? 'Google Sign-In is not enabled in Firebase Console (Authentication > Sign-in method).'
+        : errCode === 'auth/popup-blocked'
+        ? 'Popup was blocked by your browser. Please allow popups or use instant Google email sign-in.'
+        : errMsg || 'Google sign-in popup failed.'
+    );
+    (customErr as unknown as { code: string }).code = errCode;
+    throw customErr;
+  }
 }
 
 export async function registerWithEmail(

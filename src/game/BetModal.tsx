@@ -81,7 +81,7 @@ export const BetModal: React.FC<BetModalProps> = ({
               style={{ backgroundColor: slice?.accentColor || '#ef4444' }}
             />
             <h3 className="font-bold text-base tracking-wide uppercase text-slate-100">
-              BET ON {color}
+              BET ON {color.replace('DARK ', '')}
             </h3>
           </div>
           <button

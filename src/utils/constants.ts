@@ -1,17 +1,17 @@
 import { WheelColor, WheelSliceConfig } from '../types';
 
 export const WHEEL_COLORS: WheelColor[] = [
-  'DARK RED',
-  'DARK PINK',
-  'DARK BLUE',
-  'DARK GREEN',
-  'DARK PURPLE',
+  'RED',
+  'PINK',
+  'BLUE',
+  'GREEN',
+  'PURPLE',
 ];
 
 export const WHEEL_SLICES: WheelSliceConfig[] = [
   {
-    name: 'DARK RED',
-    label: 'DARK RED',
+    name: 'RED',
+    label: 'RED',
     bgGradient: 'from-red-950 via-red-900 to-rose-950',
     borderColor: '#dc2626',
     textColor: '#fecaca',
@@ -22,8 +22,8 @@ export const WHEEL_SLICES: WheelSliceConfig[] = [
     endAngle: 36,
   },
   {
-    name: 'DARK PINK',
-    label: 'DARK PINK',
+    name: 'PINK',
+    label: 'PINK',
     bgGradient: 'from-pink-950 via-pink-900 to-fuchsia-950',
     borderColor: '#db2777',
     textColor: '#fbcfe8',
@@ -34,8 +34,8 @@ export const WHEEL_SLICES: WheelSliceConfig[] = [
     endAngle: 108,
   },
   {
-    name: 'DARK BLUE',
-    label: 'DARK BLUE',
+    name: 'BLUE',
+    label: 'BLUE',
     bgGradient: 'from-blue-950 via-blue-900 to-indigo-950',
     borderColor: '#2563eb',
     textColor: '#bfdbfe',
@@ -46,8 +46,8 @@ export const WHEEL_SLICES: WheelSliceConfig[] = [
     endAngle: 180,
   },
   {
-    name: 'DARK GREEN',
-    label: 'DARK GREEN',
+    name: 'GREEN',
+    label: 'GREEN',
     bgGradient: 'from-emerald-950 via-emerald-900 to-green-950',
     borderColor: '#16a34a',
     textColor: '#bbf7d0',
@@ -58,8 +58,8 @@ export const WHEEL_SLICES: WheelSliceConfig[] = [
     endAngle: 252,
   },
   {
-    name: 'DARK PURPLE',
-    label: 'DARK PURPLE',
+    name: 'PURPLE',
+    label: 'PURPLE',
     bgGradient: 'from-purple-950 via-purple-900 to-violet-950',
     borderColor: '#9333ea',
     textColor: '#e9d5ff',
