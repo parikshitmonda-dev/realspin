@@ -3,18 +3,37 @@ import { GameRound, WheelColor } from '../types';
 import {
   subscribeCurrentRound,
   syncRoundProgress,
-  calculateTargetAngle,
-  createNewRound,
   subscribeRecentWinningColors,
+  getCachedCurrentRound,
 } from '../services/roundService';
-import { RESULT_DISPLAY_MS } from '../utils/constants';
 import confetti from 'canvas-confetti';
 
 export function useGameRound() {
-  const [round, setRound] = useState<GameRound | null>(null);
-  const [timeLeftMs, setTimeLeftMs] = useState<number>(0);
-  const [wheelRotation, setWheelRotation] = useState<number>(0);
-  const [isSpinningVisual, setIsSpinningVisual] = useState<boolean>(false);
+  const [round, setRound] = useState<GameRound | null>(() => getCachedCurrentRound());
+  const [timeLeftMs, setTimeLeftMs] = useState<number>(() => {
+    const cached = getCachedCurrentRound();
+    if (!cached) return 0;
+    const now = Date.now();
+    if (cached.status === 'BETTING_OPEN') {
+      return Math.max(0, cached.bettingEndTime - now);
+    } else if (cached.status === 'SPINNING') {
+      return Math.max(0, cached.spinEndTime - now);
+    }
+    return 0;
+  });
+  const [wheelRotation, setWheelRotation] = useState<number>(() => {
+    const cached = getCachedCurrentRound();
+    return cached?.targetAngle || 0;
+  });
+  const [isSpinningVisual, setIsSpinningVisual] = useState<boolean>(() => {
+    const cached = getCachedCurrentRound();
+    if (!cached) return false;
+    const now = Date.now();
+    return (
+      cached.status === 'SPINNING' ||
+      (cached.status === 'BETTING_OPEN' && now >= cached.bettingEndTime && now < cached.spinEndTime)
+    );
+  });
   const [celebrationColor, setCelebrationColor] = useState<WheelColor | null>(null);
   const [recentColors, setRecentColors] = useState<WheelColor[]>([]);
   const previousStatusRef = useRef<string>('');
@@ -35,14 +54,14 @@ export function useGameRound() {
     return () => unsub();
   }, []);
 
-  // 2. Timer for countdown and auto-progression (smooth 500ms interval for UI countdown)
+  // 2. Timer for countdown and auto-progression (smooth 250ms interval for UI countdown)
   useEffect(() => {
     if (!round) return;
 
     const updateTimer = () => {
       const now = Date.now();
 
-      // Advance round lifecycle if needed
+      // Advance round lifecycle if needed (handles BETTING_OPEN -> SPINNING -> COMPLETED -> Next Round)
       syncRoundProgress(round).catch(() => {});
 
       if (round.status === 'BETTING_OPEN') {
@@ -63,20 +82,11 @@ export function useGameRound() {
         setTimeLeftMs(0);
         setIsSpinningVisual(false);
         setWheelRotation(round.targetAngle);
-
-        // Fallback auto-advancement: If completed for more than RESULT_DISPLAY_MS, advance round smoothly
-        if (now >= round.spinEndTime + RESULT_DISPLAY_MS) {
-          createNewRound(round.roundNumber, round.targetAngle)
-            .then((nextRound) => {
-              setRound(nextRound);
-            })
-            .catch(() => {});
-        }
       }
     };
 
     updateTimer();
-    const interval = setInterval(updateTimer, 500);
+    const interval = setInterval(updateTimer, 250);
 
     return () => clearInterval(interval);
   }, [round]);

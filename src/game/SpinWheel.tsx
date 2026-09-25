@@ -429,9 +429,9 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
       const spinStartTime = spinEndTime - spinDuration;
       const startAngle = startAngleRef.current;
 
-      // Ensure target is strictly forward from startAngle by 36-44 revolutions (2x faster wheel speed)
+      // Ensure target is strictly forward from startAngle by 48-60 revolutions (0.5x faster wheel speed)
       let finalTarget = round.targetAngle;
-      while (finalTarget <= startAngle + 36 * 360) {
+      while (finalTarget <= startAngle + 48 * 360) {
         finalTarget += 360;
       }
       targetAngleRef.current = finalTarget;
@@ -458,7 +458,7 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
         if (pegIndex !== lastPegIndexRef.current) {
           lastPegIndexRef.current = pegIndex;
           const nowMs = performance.now();
-          if (nowMs - lastPegSoundTimeRef.current >= 24) {
+          if (nowMs - lastPegSoundTimeRef.current >= 16) {
             lastPegSoundTimeRef.current = nowMs;
             playPegSound(rawProgress);
           }
@@ -602,7 +602,7 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
   const activeSpinning = isSpinning ?? (round?.status === 'SPINNING');
 
   return (
-    <div className="relative flex items-center justify-center select-none w-full max-w-[340px] aspect-square mx-auto my-1">
+    <div className="relative flex items-center justify-center select-none w-full max-w-[375px] sm:max-w-[400px] aspect-square mx-auto my-1 px-1 sm:px-0">
       {/* Sound Toggle Button */}
       <button
         id="wheel-sound-toggle-btn"

@@ -75,8 +75,8 @@ export const WIN_MULTIPLIER = 4; // 4x payout on winning color
 
 // Timing config
 export const ROUND_DURATION_MS = 180 * 1000; // 3 minutes betting duration before wheel spins
-export const MIN_SPIN_DURATION_MS = 30 * 1000; // 30s wheel movement time
-export const MAX_SPIN_DURATION_MS = 45 * 1000; // 45s wheel movement time
+export const MIN_SPIN_DURATION_MS = 20 * 1000; // 20s wheel movement time (20 to 30 seconds)
+export const MAX_SPIN_DURATION_MS = 30 * 1000; // 30s wheel movement time
 export const BETTING_CLOSES_BEFORE_SPIN_MS = 5 * 1000; // 5s betting closed buffer before spin
 export const RESULT_DISPLAY_MS = 10 * 1000; // 10s result view before next round starts
 

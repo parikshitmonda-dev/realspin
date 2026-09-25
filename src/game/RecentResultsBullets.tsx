@@ -90,13 +90,13 @@ export const RecentResultsBullets: React.FC<RecentResultsBulletsProps> = ({
   return (
     <section
       aria-label="Last 5 Round Results"
-      className="w-full flex flex-col items-center justify-center my-0.5 select-none"
+      className="w-full flex flex-col items-center justify-center -mt-1 sm:-mt-1.5 mb-2.5 sm:mb-3.5 select-none"
     >
-      <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900/90 py-1 px-2.5 rounded-full border border-slate-800 shadow-lg backdrop-blur-md">
+      <div className="flex items-center gap-1.5 sm:gap-2.5 bg-slate-900/95 py-1.5 px-3 sm:px-3.5 rounded-full border border-slate-800/90 shadow-xl backdrop-blur-md">
         {/* Subtle Label */}
-        <div className="flex items-center gap-1 pl-0.5 pr-1 border-r border-slate-750">
-          <span className="text-[10px] leading-none">🎯</span>
-          <span className="text-[9px] font-mono font-bold tracking-wider text-slate-400 uppercase whitespace-nowrap">
+        <div className="flex items-center gap-1 pl-0.5 pr-1.5 border-r border-slate-800">
+          <span className="text-xs sm:text-sm leading-none">🎯</span>
+          <span className="text-[10px] sm:text-[11px] font-mono font-bold tracking-wider text-slate-300 uppercase whitespace-nowrap">
             LAST 5:
           </span>
         </div>
@@ -117,30 +117,30 @@ export const RecentResultsBullets: React.FC<RecentResultsBulletsProps> = ({
               >
                 {/* Bullet Shell Container */}
                 <div
-                  className={`relative flex items-center h-5 sm:h-5.5 w-9 sm:w-11 rounded-r-full rounded-l-[3px] border transition-all duration-300 transform group-hover:scale-110 active:scale-95 ${
-                    isLatest ? 'ring-1 ring-amber-400/80 ring-offset-1 ring-offset-slate-950' : ''
+                  className={`relative flex items-center h-6 sm:h-7 w-11 sm:w-13 rounded-r-full rounded-l-[4px] border transition-all duration-300 transform group-hover:scale-110 active:scale-95 ${
+                    isLatest ? 'ring-1.5 ring-amber-400 ring-offset-1 ring-offset-slate-950' : ''
                   }`}
                   style={{
                     background: config.gradient,
                     borderColor: config.borderColor,
                     boxShadow: isLatest
-                      ? `0 0 10px ${config.glowColor}, inset 0 1px 1px rgba(255,255,255,0.4)`
+                      ? `0 0 12px ${config.glowColor}, inset 0 1px 1px rgba(255,255,255,0.4)`
                       : `0 1px 4px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.2)`,
                   }}
                 >
                   {/* Cartridge primer base line (flat left edge) */}
                   <div
-                    className="w-1 h-full rounded-l-[2px] opacity-75 border-r border-black/30"
+                    className="w-1.5 h-full rounded-l-[3px] opacity-80 border-r border-black/35"
                     style={{ backgroundColor: config.primerColor }}
                   />
 
                   {/* Top gloss highlight reflection on bullet body */}
-                  <div className="absolute top-0.5 left-1 right-2 h-[2px] bg-white/35 rounded-full pointer-events-none" />
+                  <div className="absolute top-0.5 left-1.5 right-2 h-[2px] bg-white/40 rounded-full pointer-events-none" />
 
                   {/* Bullet Color Label */}
                   <div className="flex-1 text-center pr-1.5">
                     <span
-                      className="text-[8.5px] sm:text-[9.5px] font-heading font-black tracking-tighter drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] truncate block"
+                      className="text-[9.5px] sm:text-[11px] font-heading font-black tracking-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] truncate block"
                       style={{ color: config.textColor }}
                     >
                       {config.shortLabel}
@@ -158,7 +158,7 @@ export const RecentResultsBullets: React.FC<RecentResultsBulletsProps> = ({
 
                 {/* Floating Tooltip */}
                 {activeTooltip === idx && (
-                  <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 z-40 bg-slate-950 border border-slate-700 px-2 py-0.5 rounded text-[9px] font-bold text-slate-200 whitespace-nowrap shadow-xl pointer-events-none animate-in fade-in duration-150">
+                  <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 z-40 bg-slate-950 border border-slate-700 px-2 py-0.5 rounded text-[10px] font-bold text-slate-200 whitespace-nowrap shadow-xl pointer-events-none animate-in fade-in duration-150">
                     {isLatest ? '★ Latest: ' : `#${idx + 1}: `}
                     <span style={{ color: config.borderColor }}>{config.name}</span>
                   </div>

@@ -72,18 +72,18 @@ export const BettingButtons: React.FC<BettingButtonsProps> = ({
   };
 
   return (
-    <div className="w-full max-w-[330px] sm:max-w-[360px] mx-auto px-1 py-1.5">
+    <div className="w-full max-w-[385px] sm:max-w-[410px] mx-auto px-1 sm:px-2 py-1">
       <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5 px-1 font-mono">
-        <span className="font-semibold text-[11px] uppercase tracking-wider text-slate-300">
+        <span className="font-bold text-[11px] sm:text-xs uppercase tracking-wider text-slate-300">
           SELECT COLOR TO BET (4× WIN)
         </span>
-        <span className="text-[10px] text-amber-400/90 font-medium">
+        <span className="text-[10.5px] sm:text-[11px] text-amber-400 font-semibold">
           {isBettingOpen ? '● LIVE' : '○ LOCKED'}
         </span>
       </div>
 
-      {/* 5 Betting Tabs: decreased width and compact layout to fit perfectly on mobile */}
-      <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
+      {/* 5 Betting Tabs: enlarged to comfortably fill mobile width with clear visibility */}
+      <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5 w-full">
         {WHEEL_SLICES.map((slice) => {
           const style = buttonStyles[slice.name];
           const colorBets = userBets.filter((b) => b.selectedColor === slice.name);
@@ -97,26 +97,26 @@ export const BettingButtons: React.FC<BettingButtonsProps> = ({
               type="button"
               disabled={disabled}
               onClick={() => onSelectColor(slice.name)}
-              className={`relative overflow-hidden rounded-xl border py-1.5 px-1 sm:py-2 sm:px-2 w-[calc(33.333%-6px)] sm:w-[102px] min-w-[90px] max-w-[108px] flex-shrink-0 flex flex-col items-center justify-center gap-0.5 transition-all duration-200 active:scale-95 bg-gradient-to-b ${style.gradient} ${style.border} ${style.hover} ${style.glow} ${
+              className={`relative overflow-hidden rounded-xl sm:rounded-2xl border py-2.5 sm:py-3 px-1.5 sm:px-2 w-[calc(33.333%-6px)] sm:w-[118px] min-w-[106px] max-w-[125px] flex-shrink-0 flex flex-col items-center justify-center gap-0.5 sm:gap-1 transition-all duration-200 active:scale-95 bg-gradient-to-b ${style.gradient} ${style.border} ${style.hover} ${style.glow} shadow-md ${
                 isWinningColor ? 'ring-2 sm:ring-4 ring-amber-400 animate-pulse' : ''
               }`}
             >
               {/* Top Row: Icon and Label */}
-              <div className="flex items-center justify-center gap-1 z-10 w-full px-0.5">
-                <span className="text-xs sm:text-sm shrink-0">{style.icon}</span>
-                <span className="font-bold text-[10px] sm:text-[11px] tracking-tight text-slate-100 uppercase truncate">
+              <div className="flex items-center justify-center gap-1.5 z-10 w-full px-0.5">
+                <span className="text-sm sm:text-base shrink-0">{style.icon}</span>
+                <span className="font-black text-[10.5px] sm:text-xs tracking-tight text-slate-100 uppercase truncate">
                   {slice.label}
                 </span>
               </div>
 
               {/* Sub-label: 4x Payout Multiplier */}
-              <div className="text-[9px] font-mono font-medium text-amber-300/90 z-10">
+              <div className="text-[9.5px] sm:text-[10px] font-mono font-bold text-amber-300 z-10">
                 PAYOUT 4×
               </div>
 
               {/* Active user bet badge if user has bet on this color */}
               {totalBetOnColor > 0 && (
-                <div className="mt-0.5 px-1.5 py-0.5 rounded-full bg-slate-950/90 border border-amber-400/60 text-[9px] font-mono font-bold text-amber-300 z-10 flex items-center gap-0.5 max-w-full truncate">
+                <div className="mt-0.5 px-2 py-0.5 rounded-full bg-slate-950/90 border border-amber-400/60 text-[9.5px] sm:text-[10px] font-mono font-bold text-amber-300 z-10 flex items-center gap-1 max-w-full truncate">
                   <span>🪙</span>
                   <span className="truncate">{totalBetOnColor.toLocaleString()}</span>
                 </div>
@@ -124,7 +124,7 @@ export const BettingButtons: React.FC<BettingButtonsProps> = ({
 
               {/* Winning banner if completed */}
               {isWinningColor && (
-                <div className="absolute inset-x-0 bottom-0 bg-amber-500 text-slate-950 text-[8px] font-black tracking-widest uppercase py-0.5 text-center">
+                <div className="absolute inset-x-0 bottom-0 bg-amber-500 text-slate-950 text-[8.5px] font-black tracking-widest uppercase py-0.5 text-center">
                   WINNER!
                 </div>
               )}

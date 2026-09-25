@@ -37,7 +37,7 @@ export const CURRENT_ROUND_DOC = 'current_round';
 export function calculateTargetAngle(
   color: WheelColor,
   baseAngle = 0,
-  fullRotations = 42 // 2x faster rotational speed (doubled revolutions from 21 to 42)
+  fullRotations = 54 // 0.5x faster rotational speed (increased revolutions from 36-42 to 48-54)
 ): number {
   const slice = WHEEL_SLICES.find((s) => s.name === color);
   if (!slice) return baseAngle + fullRotations * 360;
@@ -51,7 +51,7 @@ export function calculateTargetAngle(
 
   const currentTurns = Math.floor(baseAngle / 360) * 360;
   let target = currentTurns + fullRotations * 360 + stopOffset;
-  while (target <= baseAngle + 36 * 360) {
+  while (target <= baseAngle + 48 * 360) {
     target += 360;
   }
 
@@ -63,10 +63,148 @@ export function pickRandomColor(): WheelColor {
   return WHEEL_COLORS[index];
 }
 
+export const ACTIVE_ROUND_STORAGE_KEY = 'realspin_active_round';
+
+export function getCachedCurrentRound(): GameRound | null {
+  try {
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') return null;
+    const raw = localStorage.getItem(ACTIVE_ROUND_STORAGE_KEY);
+    if (!raw) return null;
+    const round = JSON.parse(raw) as GameRound;
+    if (round && round.id && typeof round.bettingEndTime === 'number') {
+      return round;
+    }
+  } catch {
+    // non-fatal
+  }
+  return null;
+}
+
+export function saveCachedCurrentRound(round: GameRound | null): void {
+  try {
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') return;
+    if (!round) {
+      localStorage.removeItem(ACTIVE_ROUND_STORAGE_KEY);
+      return;
+    }
+    localStorage.setItem(ACTIVE_ROUND_STORAGE_KEY, JSON.stringify(round));
+  } catch {
+    // non-fatal
+  }
+}
+
+let isAdvancingLock = false;
+
+/**
+ * Concurrency-safe, atomic round progression using Firestore transaction.
+ * Ensures that even across multiple tabs, clients, or rapid timer ticks,
+ * a completed round advances exactly once and active rounds are never overwritten.
+ */
+export async function advanceToNextRound(completedRound: GameRound): Promise<GameRound | null> {
+  if (isAdvancingLock) return null;
+  isAdvancingLock = true;
+  try {
+    const currentRef = doc(db, 'rounds', CURRENT_ROUND_DOC);
+    const result = await runTransaction(db, async (tx) => {
+      const snap = await tx.get(currentRef);
+      if (!snap.exists()) {
+        return null;
+      }
+      const current = snap.data() as GameRound;
+
+      // If already advanced by another client or tab (different id and higher round number)
+      if (current.id !== completedRound.id && current.roundNumber > (completedRound.roundNumber || 0)) {
+        return current;
+      }
+
+      const now = Date.now();
+      // If round is still active and betting time has not elapsed, never overwrite
+      if (current.status === 'BETTING_OPEN' && now < current.bettingEndTime) {
+        return current;
+      }
+
+      let bettingDuration = 180 * 1000; // default 3 minutes (180s)
+      let winningColor = pickRandomColor();
+      let adminOverridden = false;
+
+      // Check admin settings
+      try {
+        const controlRef = doc(db, 'system_settings', 'game_control');
+        const controlSnap = await tx.get(controlRef);
+        if (controlSnap.exists()) {
+          const cfg = controlSnap.data() as GameControlSettings;
+          if (cfg.nextForcedColor) {
+            winningColor = cfg.nextForcedColor;
+            adminOverridden = true;
+            if (cfg.autoResetForcedColor !== false) {
+              tx.update(controlRef, { nextForcedColor: null });
+            }
+          }
+          if (cfg.bettingDurationSeconds && cfg.bettingDurationSeconds >= 15) {
+            bettingDuration = cfg.bettingDurationSeconds * 1000;
+          }
+        }
+      } catch {
+        // non-fatal
+      }
+
+      const spinDuration =
+        Math.floor(Math.random() * (MAX_SPIN_DURATION_MS - MIN_SPIN_DURATION_MS)) +
+        MIN_SPIN_DURATION_MS;
+
+      const bettingEndTime = now + bettingDuration;
+      const spinEndTime = bettingEndTime + spinDuration;
+      const targetAngle = calculateTargetAngle(winningColor, completedRound.targetAngle || 0);
+
+      const roundNumber = (completedRound.roundNumber || 0) + 1;
+      const roundId = `RND-${Date.now().toString().slice(-6)}-${roundNumber}`;
+
+      const prior = completedRound.recentWinningColors || [];
+      const updatedRecent =
+        prior[0] === completedRound.winningColor
+          ? prior
+          : [completedRound.winningColor, ...prior.filter((_, i) => i < 9)];
+
+      const nextRound: GameRound = {
+        id: roundId,
+        roundNumber,
+        status: 'BETTING_OPEN',
+        startTime: now,
+        bettingEndTime,
+        spinDuration,
+        spinEndTime,
+        winningColor,
+        targetAngle,
+        totalBetsCount: 0,
+        totalCoinsBet: 0,
+        payoutProcessed: false,
+        adminOverridden,
+        recentWinningColors: updatedRecent,
+        createdAt: now,
+      };
+
+      tx.set(currentRef, nextRound);
+      const archiveRef = doc(db, 'rounds', roundId);
+      tx.set(archiveRef, nextRound);
+
+      return nextRound;
+    });
+
+    if (result) {
+      saveCachedCurrentRound(result);
+    }
+    return result;
+  } catch (err) {
+    console.error('advanceToNextRound error:', err);
+    return null;
+  } finally {
+    isAdvancingLock = false;
+  }
+}
+
 /**
  * Creates a new synchronized global round.
- * Betting open for 3 minutes (180 seconds), spin 30-45 seconds, display result 10 seconds.
- * The wheel spins automatically after every 3 minutes.
+ * Betting open for configured duration (default 3 minutes = 180 seconds).
  */
 export async function createNewRound(
   previousRoundNumber = 0,
@@ -98,7 +236,7 @@ export async function createNewRound(
             await updateDoc(controlRef, { nextForcedColor: null }).catch(() => {});
           }
         }
-        if (cfg.bettingDurationSeconds && cfg.bettingDurationSeconds >= 15 && cfg.bettingDurationSeconds !== 80) {
+        if (cfg.bettingDurationSeconds && cfg.bettingDurationSeconds >= 15) {
           bettingDuration = cfg.bettingDurationSeconds * 1000;
         }
       }
@@ -160,71 +298,77 @@ export async function createNewRound(
     console.warn('Firestore round persist warning (using local fallback):', err);
   }
 
+  saveCachedCurrentRound(newRound);
   return newRound;
 }
 
 /**
- * Realtime listener for the active round with resilient offline/fallback support.
+ * Realtime listener for the active round with persistent cache and resilient offline support.
+ * Never resets the timer or creates an unrequested new round on refresh.
  */
 export function subscribeCurrentRound(callback: (round: GameRound | null) => void) {
-  let hasReceivedData = false;
+  // 1. Immediately provide cached round from local storage for instant zero-latency rendering
+  const cached = getCachedCurrentRound();
+  if (cached) {
+    callback(cached);
+  }
 
-  // Fallback safety timeout: if Firestore takes > 1.5s or fails, spin wheel immediately with fallback round
-  const fallbackTimer = setTimeout(async () => {
-    if (!hasReceivedData) {
-      console.log('Using local fallback round for immediate countdown & wheel spin');
-      const fallbackRound = await createNewRound(0);
-      callback(fallbackRound);
-    }
-  }, 1200);
-
+  // 2. Real-time subscription to active round document in Firestore
   const currentRef = doc(db, 'rounds', CURRENT_ROUND_DOC);
   const unsub = onSnapshot(
     currentRef,
     async (snapshot) => {
-      hasReceivedData = true;
-      clearTimeout(fallbackTimer);
       if (snapshot.exists()) {
         const round = snapshot.data() as GameRound;
+        saveCachedCurrentRound(round);
         callback(round);
       } else {
-        // Initialize first round if none exists
+        // Initialize first round only if no round exists at all in the database
         try {
           const firstRound = await createNewRound(0);
+          saveCachedCurrentRound(firstRound);
           callback(firstRound);
         } catch {
           callback(null);
         }
       }
     },
-    async (err) => {
-      console.warn('Current round snapshot error, falling back to local round timer:', err);
-      clearTimeout(fallbackTimer);
-      const fallbackRound = await createNewRound(0);
-      callback(fallbackRound);
+    (err) => {
+      console.warn('Current round snapshot warning:', err);
+      // Resilient fallback: never overwrite an active round on connection errors!
+      const fallbackCached = getCachedCurrentRound();
+      if (fallbackCached) {
+        callback(fallbackCached);
+      }
     }
   );
 
-  return () => {
-    clearTimeout(fallbackTimer);
-    unsub();
-  };
+  return unsub;
 }
 
 /**
  * Checks round timing and transitions status if needed:
- * BETTING_OPEN -> SPINNING (or BETTING_CLOSED) -> COMPLETED.
- * When round ends, triggers payout and advances to next round.
+ * BETTING_OPEN -> SPINNING -> COMPLETED -> Next Round.
+ * Keeps spin timer completely consistent across page reloads.
  */
 export async function syncRoundProgress(round: GameRound): Promise<void> {
   const now = Date.now();
   const currentRef = doc(db, 'rounds', CURRENT_ROUND_DOC);
 
+  // If the round has completely expired in the past (e.g. user reopens app after a long time)
+  if (now >= round.spinEndTime + RESULT_DISPLAY_MS) {
+    await advanceToNextRound(round);
+    return;
+  }
+
   // 1. Betting open -> Betting closed / Spinning
   if (round.status === 'BETTING_OPEN' && now >= round.bettingEndTime) {
-    await updateDoc(currentRef, { status: 'SPINNING' });
-    const archiveRef = doc(db, 'rounds', round.id);
-    await updateDoc(archiveRef, { status: 'SPINNING' }).catch(() => {});
+    try {
+      await updateDoc(currentRef, { status: 'SPINNING' });
+      const archiveRef = doc(db, 'rounds', round.id);
+      await updateDoc(archiveRef, { status: 'SPINNING' }).catch(() => {});
+      saveCachedCurrentRound({ ...round, status: 'SPINNING' });
+    } catch {}
     return;
   }
 
@@ -236,32 +380,34 @@ export async function syncRoundProgress(round: GameRound): Promise<void> {
         ? prior
         : [round.winningColor, ...prior.filter((_, i) => i < 9)];
 
-    await updateDoc(currentRef, {
-      status: 'COMPLETED',
-      recentWinningColors: updatedRecent,
-    });
-    const archiveRef = doc(db, 'rounds', round.id);
-    await updateDoc(archiveRef, {
-      status: 'COMPLETED',
-      recentWinningColors: updatedRecent,
-    }).catch(() => {});
+    try {
+      await updateDoc(currentRef, {
+        status: 'COMPLETED',
+        recentWinningColors: updatedRecent,
+      });
+      const archiveRef = doc(db, 'rounds', round.id);
+      await updateDoc(archiveRef, {
+        status: 'COMPLETED',
+        recentWinningColors: updatedRecent,
+      }).catch(() => {});
 
-    // Trigger payout processing
-    if (!round.payoutProcessed) {
-      await processRoundPayout(round);
-    }
+      saveCachedCurrentRound({
+        ...round,
+        status: 'COMPLETED',
+        recentWinningColors: updatedRecent,
+      });
+
+      // Trigger payout processing
+      if (!round.payoutProcessed) {
+        await processRoundPayout(round);
+      }
+    } catch {}
     return;
   }
 
   // 3. Completed -> Next round after RESULT_DISPLAY_MS
   if (round.status === 'COMPLETED' && now >= round.spinEndTime + RESULT_DISPLAY_MS) {
-    const prior = round.recentWinningColors || [];
-    const updatedRecent =
-      prior[0] === round.winningColor
-        ? prior
-        : [round.winningColor, ...prior.filter((_, i) => i < 9)];
-    // Start next round
-    await createNewRound(round.roundNumber, round.targetAngle, undefined, updatedRecent);
+    await advanceToNextRound(round);
   }
 }
 
@@ -399,6 +545,14 @@ export async function overrideCurrentRoundWinningColor(
       }).catch(() => {});
     }
 
+    saveCachedCurrentRound({
+      ...round,
+      winningColor: color,
+      targetAngle: newTargetAngle,
+      adminOverridden: true,
+      overriddenBy: adminUser?.email || adminUser?.fullName || 'Master Admin',
+    });
+
     try {
       const logRef = doc(collection(db, 'admin_logs'));
       await setDoc(logRef, {
@@ -431,7 +585,7 @@ export async function forceSpinCurrentRound(
     const round = snap.data() as GameRound;
 
     const now = Date.now();
-    const spinDuration = 35000; // 35s (within 30s-45s duration range)
+    const spinDuration = 25000; // 25s (within 20s-30s duration range)
     const updates = {
       status: 'SPINNING' as const,
       bettingEndTime: now - 1000,
@@ -443,6 +597,8 @@ export async function forceSpinCurrentRound(
       const archRef = doc(db, 'rounds', round.id);
       await updateDoc(archRef, updates).catch(() => {});
     }
+
+    saveCachedCurrentRound({ ...round, ...updates });
 
     try {
       const logRef = doc(collection(db, 'admin_logs'));
@@ -486,6 +642,8 @@ export async function forceCompleteCurrentRound(
       const archRef = doc(db, 'rounds', round.id);
       await updateDoc(archRef, updates).catch(() => {});
     }
+
+    saveCachedCurrentRound({ ...round, ...updates });
 
     await processRoundPayout({ ...round, status: 'COMPLETED' });
 
